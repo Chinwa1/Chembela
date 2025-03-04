@@ -7,15 +7,19 @@ output: html_document
 ####read the data
 
 ```{r}
-setwd("C:/Users/hchin/OneDrive/Atlantic Beach/Documents/PhD/DPhil/DPhil/RGB for indirect selection/GLASSHOUSE FINAL EXPERIMENTS")
+setwd("C:/Users/hchin/OneDrive/Atlantic Beach/Documents/PhD/DPhil/Chembela")
 ```
 
 ```{r}
-
+Severe=read.csv("C:/Users/hchin/OneDrive/Atlantic Beach/Documents/PhD/DPhil/Chembela/design_lab.csv")
 ```
 
 ```{r}
-attach(GRV)
+attach(Severe)
+```
+
+```{r}
+View(Severe)
 ```
 
 ```{r}
@@ -29,23 +33,32 @@ attach(GRV)
 ```
 
 ```{r}
-GRV$Genotypes=as.factor(GRV$Genotypes)
-GRV$Replication=as.factor(GRV$Replication)
-GRV$Group=as.factor(GRV$Group)
+Severe$Replication=as.factor(Severe$Replication)
+Severe$trt=as.factor(Severe$trt)
+Severe$Day=as.factor(Severe$Day)
+```
+
+```{r}
+str(Severe)
+```
+
+```{r}
+Severe$Severity=as.numeric(Severe$Severity)
+Severe$Incidence=as.numeric(Severe$Incidence)
 ```
 
 ####Pod incubation period####
 ```{r}
-value_max=GRV %>% group_by(Genotypes) %>% summarize(max_value=max(Incubation))
-hsd=HSD.test(aov(Incubation~Genotypes+Replication,data=GRV),trt="Genotypes",group = T)
+value_max=Severe %>% group_by(trt) %>% summarize(max_value=max(Radial_growth))
+hsd=HSD.test(aov(Radial_growth~trt,data=Severe),trt="trt",group = T)
 sig.letters=hsd$groups[order(row.names(hsd$groups)),]
 ```
 
 ```{r}
-GRVinc=ggplot(data=GRV,aes(reorder(x=Genotypes,-Incubation),y=Incubation))+
-  geom_boxplot(aes(fill=Genotypes))+
-                 geom_text(data=value_max,aes(x=Genotypes,y=0.+
-                                                            max_value,label=sig.letters$groups),vjust=0)+stat_boxplot(width=0.1)+ggtitle("")+xlab("")+ylab("Incubation period (days)")+theme_classic()+
+Severityplot=ggplot(data=Severe,aes(reorder(x=trt,-Radial_growth),y=Radial_growth))+
+  geom_boxplot(aes(fill=trt))+
+                 geom_text(data=value_max,aes(x=trt,y=0.+
+                                                            max_value,label=sig.letters$groups),vjust=0)+stat_boxplot(width=0.1)+ggtitle("")+xlab("")+ylab("Radial growth (days)")+theme_classic()+
   theme(axis.text.x = element_text(angle = 90,size = 10))+
   theme(axis.text.y = element_text(angle = 0,size = 15))+
   theme(axis.title.x = element_text(size = 15))+
@@ -54,7 +67,7 @@ GRVinc=ggplot(data=GRV,aes(reorder(x=Genotypes,-Incubation),y=Incubation))+
 ```
 
 ```{r}
-GRVinc
+Severityplot
 ```
 
 ####pod yield#####

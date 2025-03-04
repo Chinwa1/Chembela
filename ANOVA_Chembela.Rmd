@@ -1,0 +1,137 @@
+---
+title: "Chembela ANOVA lab"
+author: "Hardlife Chinwa"
+date: "2025-03-04"
+output: html_document
+---
+###set the working directory
+
+```{r}
+setwd("C:/Users/hchin/OneDrive/Atlantic Beach/Documents/PhD/DPhil/Chembela")
+```
+
+###load the data, can use the import function
+
+```{r}
+radial=read.csv("C:/Users/hchin/OneDrive/Atlantic Beach/Documents/PhD/DPhil/Chembela/design_lab.csv")
+```
+###attach the data
+```{r}
+attach(radial)
+```
+
+```{r}
+library(ggplot2)
+library(agricolae)
+library(dplyr)
+library(patchwork)
+```
+
+```{r}
+radial$Replication=as.factor(radial$Replication)
+radial$trt=as.factor(radial$trt)
+radial$Day=as.factor(radial$Day)
+```
+
+###check for the normality of data
+```{r}
+shapiro.test(radial$Radial_growth)
+```
+
+###plot a normality line
+```{r}
+library(tidyselect)
+library(ggplot2)
+qqnorm(radial$Radial_growth)
+qqline(radial$Radial_growth)
+qqplot(radial$trt,radial$Radial_growth)
+```
+
+# Using to explore the distribution of a variable
+```{r}
+ggplot(radial, aes(sample = radial$Radial_growth)) +
+  stat_qq() +
+  stat_qq_line()
+ggplot(radial, aes(sample = Radial_growth, colour = factor(trt))) +
+  stat_qq() +
+  stat_qq_line()+
+  theme_bw()+
+  theme(element_blank())
+```
+
+###compute the model lmer
+```{r}
+library(lme4)
+library(lmerTest)
+library(agricolae)
+```
+
+```{r}
+rad=lm(Radial_growth~trt*Day+Replication,radial)
+```
+
+```{r}
+rads=anova(rad)
+```
+
+```{r}
+library(ggplot2)
+library(agricolae)
+library(dplyr)
+library(patchwork)
+```
+
+####Pod incubation period####
+```{r}
+value_max=radial %>% group_by(trt) %>% summarize(max_value=max(Radial_growth))
+hsd=HSD.test(aov(Radial_growth~trt,data=radial),trt="trt",group = T)
+sig.letters=hsd$groups[order(row.names(hsd$groups)),]
+```
+
+```{r}
+Severityplot=ggplot(data=radial,aes(reorder(x=trt,-Radial_growth),y=Radial_growth))+
+  geom_boxplot(aes(fill=trt))+
+                 geom_text(data=value_max,aes(x=trt,y=0.+
+                                                            max_value,label=sig.letters$groups),vjust=0)+stat_boxplot(width=0.1)+ggtitle("")+xlab("")+ylab("Radial growth (mm)")+theme_classic()+
+  theme(axis.text.x = element_text(angle = 90,size = 10))+
+  theme(axis.text.y = element_text(angle = 0,size = 15))+
+  theme(axis.title.x = element_text(size = 15))+
+  theme(axis.title.y = element_text(size = 15))+
+  theme(legend.position = "none")
+```
+
+```{r}
+Severityplot
+```
+
+###compute 2 way interaction plots
+```{r}
+interaction.plot(x.factor = radial$trt,
+                 trace.factor =radial$Day,
+                 response = Radial_growth,
+                 fun = mean,
+                 xlab = "trt",
+                 ylab = "Radial_growth",
+                 trace.label = "Day",
+                 col = factor(trt),
+                 lty = 4,
+                 lwd=2.5,xtick = TRUE,
+                 main="Radial_growth")
+with(radial,{interaction.plot(trt,Day,Radial_growth)
+  interaction.plot(Day,trt,Radial_growth,cex.axis=0.8)
+  Stage=factor(Day,levels = sort.list(tapply(Radial_growth,Day,mean)))
+  interaction.plot(Day,trt,Radial_growth,col = factor(trt),lty = 4)
+  
+})
+```
+
+# Type 3 anova table:
+# Display tests/hypotheses for type 1, 2, and 3 ANOVA tables:
+# (and illustrate effects of 'fractions' and 'names' arguments)
+```{r}
+(an <- anova(chin, type="3"))
+T1=show_tests(anova(chin, type="1"))
+T2=show_tests(anova(chin, type="2"), fractions=TRUE, names=TRUE)
+T3=show_tests(an, fractions=TRUE)
+```
+
